@@ -102,6 +102,41 @@ class LoginViewController: UIViewController {
             
             /* 5. Parse the data */
             /* 6. Use the data! */
+            
+            guard (error == nil) else {
+                self.debugTextLabel.text = "There was an error with requesting."
+                return
+            }
+            
+            guard let data = data else {
+                self.debugTextLabel.text = "Data was not returned."
+                return
+            }
+            
+            guard let response = response as? NSHTTPURLResponse where 200...299 ~= response.statusCode else {
+                self.debugTextLabel.text = "Not a successful response code 2xx."
+                return
+            }
+            
+            let parsedData: AnyObject!
+            do {
+                parsedData = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
+            } catch {
+                self.debugTextLabel.text = "Could not parse data into JSON: \(data). Error: \(error)"
+                return
+            }
+
+            guard (parsedData[Constants.TMDBResponseKeys.Success] as? Bool) == true else {
+                self.debugTextLabel.text = "Response not successful \(parsedData)"
+                return
+            }
+            
+            guard let requestToken = parsedData[Constants.TMDBResponseKeys.RequestToken] as? String else {
+                self.debugTextLabel.text = "Request token not found. \(parsedData)"
+                return
+            }
+            
+            print("Wohoo!!! Request token found!!! \(requestToken)")
         }
 
         /* 7. Start the request */
